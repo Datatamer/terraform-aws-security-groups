@@ -6,7 +6,7 @@ This module creates security groups.
 Inline example implementation of the module.  This is the most basic example of what it would look like to use this module.
 ```
 module "aws-sg" {
-  source = "git::https://github.com/Datatamer/terraform-aws-security-group.git?ref=x.y.z"
+  source = "git::https://github.com/Datatamer/terraform-aws-security-groups.git?ref=x.y.z"
   vpc_id = "vpc-123456789"
   ingress_cidr_blocks = [
     "1.2.3.4/32"

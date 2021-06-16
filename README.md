@@ -1,48 +1,66 @@
-# Terraform Module Template
-This is a template github repo, for a terraform module. A new terraform module, should use this as its starting point.
-This repo follows the [terraform standard module structure](https://www.terraform.io/docs/modules/index.html#standard-module-structure).
+# Security Groups Module
+This module creates security groups.
 
 # Examples
 ## Basic
 Inline example implementation of the module.  This is the most basic example of what it would look like to use this module.
 ```
-module "minimal" {
-  source = "git::https://github.com/Datatamer/terraform-template-repo?ref=0.1.0"
+module "aws-sg" {
+  source = "git::https://github.com/Datatamer/terraform-aws-security-groups.git?ref=x.y.z"
+  vpc_id = "vpc-123456789"
+  ingress_cidr_blocks = [
+    "1.2.3.4/32"
+  ]
+  egress_cidr_blocks  = [
+    "0.0.0.0/0"
+  ]
+  inress_ports = [8080, 9090]
+  sg_name_prefix = "security-group-example"
 }
 ```
-## Minimal
-Smallest complete fully working example. This example might require extra resources to run the example.
-- [Minimal](https://github.com/Datatamer/terraform-template-repo/tree/master/examples/minimal)
 
 # Resources Created
-This modules creates:
-* a null resource
+This module creates:
+* security groups for ingress
+* security groups for egress
+* security group rules
 
 <!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| terraform | >= 0.12 |
+| terraform | >= 0.13 |
+| aws | >= 3.36.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| null | n/a |
+| aws | >= 3.36.0 |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| example | Example variable. | `string` | `"default value"` | no |
+| ingress\_ports | Ports to create ingress traffic rules for | `list(number)` | n/a | yes |
+| sg\_name\_prefix | Prefix for security group names | `string` | n/a | yes |
+| vpc\_id | The ID of the VPC in which to attach the security group | `string` | n/a | yes |
+| egress\_cidr\_blocks | CIDR blocks to attach to security groups for egress | `list(string)` | `[]` | no |
+| egress\_security\_groups | Existing security groups to attach to new security groups for egress | `list(string)` | `[]` | no |
+| ingress\_cidr\_blocks | CIDR blocks to attach to security groups for ingress | `list(string)` | `[]` | no |
+| ingress\_security\_groups | Existing security groups to attach to new security groups for ingress | `list(string)` | `[]` | no |
+| maximum\_rules\_per\_sg | Maximum number of rules for each security group | `number` | `50` | no |
+| tags | Tags to be attached to the resources created | `map(string)` | `{}` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| example\_value | Example variable. |
-| null\_resource\_id | An arbitrary value that changes each time the resource is replaced. |
+| egress\_security\_group\_ids | IDs of the security groups that control egress to the resource |
+| ingress\_security\_group\_ids | IDs of the security groups that control ingress to the resource |
+| security\_group\_ids | IDs of the security groups created by this module |
+| security\_groups | Security groups created by this module |
 
 <!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 
@@ -50,19 +68,6 @@ This modules creates:
 This repo is based on:
 * [terraform standard module structure](https://www.terraform.io/docs/modules/index.html#standard-module-structure)
 * [templated terraform module](https://github.com/tmknom/template-terraform-module)
-
-# Development
-## Generating Docs
-Run `make terraform/docs` to generate the section of docs around terraform inputs, outputs and requirements.
-
-## Checkstyles
-Run `make lint`, this will run terraform fmt, in addition to a few other checks to detect whitespace issues.
-NOTE: this requires having docker working on the machine running the test
-
-## Releasing new versions
-* Update version contained in `VERSION`
-* Document changes in `CHANGELOG.md`
-* Create a tag in github for the commit associated with the version
 
 # License
 Apache 2 Licensed. See LICENSE for full details.

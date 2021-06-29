@@ -70,7 +70,7 @@ resource "aws_security_group_rule" "ingress_cidr_rules" {
   type              = "ingress"
   from_port         = local.rules_ingress_cidr[count.index]["port"]
   to_port           = local.rules_ingress_cidr[count.index]["port"]
-  protocol          = "tcp"
+  protocol          = var.ingress_protocol
   cidr_blocks       = [local.rules_ingress_cidr[count.index]["cidr"]]
 }
 
@@ -81,7 +81,7 @@ resource "aws_security_group_rule" "ingress_sg_rules" {
   type                     = "ingress"
   from_port                = local.rules_ingress_sg[count.index]["port"]
   to_port                  = local.rules_ingress_sg[count.index]["port"]
-  protocol                 = "tcp"
+  protocol                 = var.ingress_protocol
   source_security_group_id = local.rules_ingress_sg[count.index]["sg"]
 }
 
@@ -93,7 +93,7 @@ resource "aws_security_group_rule" "egress_cidr_rules" {
   type              = "egress"
   from_port         = 0
   to_port           = 0
-  protocol          = "tcp"
+  protocol          = var.egress_protocol
   cidr_blocks       = [var.egress_cidr_blocks[count.index]]
 }
 
@@ -104,6 +104,6 @@ resource "aws_security_group_rule" "egress_sg_rules" {
   type                     = "egress"
   from_port                = 0
   to_port                  = 0
-  protocol                 = "tcp"
+  protocol                 = var.egress_protocol
   source_security_group_id = var.egress_security_groups[count.index]
 }

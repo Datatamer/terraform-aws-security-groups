@@ -48,3 +48,13 @@ variable "maximum_rules_per_sg" {
   description = "Maximum number of rules for each security group"
   default     = 50
 }
+
+variable "ingress_protocol" {
+  type        = string
+  description = "Protocol for ingress rules. If not icmp, icmpv6, tcp, udp, or all use the protocol number."
+}
+
+variable "egress_protocol" {
+  type        = string
+  description = "Protocol for egress rules. If not icmp, icmpv6, tcp, udp, or all use the protocol number."
+}

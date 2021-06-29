@@ -14,7 +14,9 @@ module "aws-sg" {
   egress_cidr_blocks  = [
     "0.0.0.0/0"
   ]
-  inress_ports = [8080, 9090]
+  ingress_ports = [8080, 9090]
+  ingress_protocol = "tcp"
+  egress_protocol = "all"
   sg_name_prefix = "security-group-example"
 }
 ```
@@ -43,7 +45,9 @@ This module creates:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| egress\_protocol | Protocol for egress rules. If not icmp, icmpv6, tcp, udp, or all use the protocol number. | `string` | n/a | yes |
 | ingress\_ports | Ports to create ingress traffic rules for | `list(number)` | n/a | yes |
+| ingress\_protocol | Protocol for ingress rules. If not icmp, icmpv6, tcp, udp, or all use the protocol number. | `string` | n/a | yes |
 | sg\_name\_prefix | Prefix for security group names | `string` | n/a | yes |
 | vpc\_id | The ID of the VPC in which to attach the security group | `string` | n/a | yes |
 | egress\_cidr\_blocks | CIDR blocks to attach to security groups for egress | `list(string)` | `[]` | no |

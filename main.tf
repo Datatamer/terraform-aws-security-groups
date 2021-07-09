@@ -34,7 +34,7 @@ resource "aws_security_group" "security-groups-ingress-cidr" {
   name        = format("%s-ingress-cidr-%s", var.sg_name_prefix, count.index)
   description = "Ingress security group for Tamr (CIDR)"
   vpc_id      = var.vpc_id
-  tags        = var.tags
+  tags        = var.additional_tags
 }
 
 resource "aws_security_group" "security-groups-ingress-sg" {
@@ -42,7 +42,7 @@ resource "aws_security_group" "security-groups-ingress-sg" {
   name        = format("%s-ingress-sg-%s", var.sg_name_prefix, count.index)
   description = "Ingress security group for Tamr (SG)"
   vpc_id      = var.vpc_id
-  tags        = var.tags
+  tags        = var.additional_tags
 }
 
 // Egress security groups
@@ -51,7 +51,7 @@ resource "aws_security_group" "security-groups-egress-cidr" {
   name        = format("%s-egress-cidr-%s", var.sg_name_prefix, count.index)
   description = "Egress security group for Tamr (CIDR)"
   vpc_id      = var.vpc_id
-  tags        = var.tags
+  tags        = var.additional_tags
 }
 
 resource "aws_security_group" "security-groups-egress-sg" {
@@ -59,7 +59,7 @@ resource "aws_security_group" "security-groups-egress-sg" {
   name        = format("%s-egress-sg-%s", var.sg_name_prefix, count.index)
   description = "Egress security group for Tamr (SG)"
   vpc_id      = var.vpc_id
-  tags        = var.tags
+  tags        = var.additional_tags
 }
 
 // Ingress Rules

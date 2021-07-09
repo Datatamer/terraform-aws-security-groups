@@ -32,7 +32,7 @@ variable "egress_security_groups" {
   default     = []
 }
 
-variable "tags" {
+variable "additional_tags" {
   type        = map(string)
   description = "Tags to be attached to the resources created"
   default     = {}

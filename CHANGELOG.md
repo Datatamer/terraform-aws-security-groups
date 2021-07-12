@@ -1,8 +1,5 @@
 # Security Group Module
 
-## v1.1.0 - July 9th 2021
-* Replace `var.tags` for `var.additional_tags` in order to maintain consistency across modules.
-
 ## v1.0.0 - June 29th 2021
 * New required variables `ingress_protocol` and `egress_protocol`
 

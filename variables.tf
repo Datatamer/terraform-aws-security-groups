@@ -34,7 +34,7 @@ variable "egress_security_groups" {
 
 variable "tags" {
   type        = map(string)
-  description = "Tags to be attached to the resources created"
+  description = "A map of tags to add to all resources."
   default     = {}
 }
 

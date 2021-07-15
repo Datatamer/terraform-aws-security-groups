@@ -55,7 +55,7 @@ This module creates:
 | ingress\_cidr\_blocks | CIDR blocks to attach to security groups for ingress | `list(string)` | `[]` | no |
 | ingress\_security\_groups | Existing security groups to attach to new security groups for ingress | `list(string)` | `[]` | no |
 | maximum\_rules\_per\_sg | Maximum number of rules for each security group | `number` | `50` | no |
-| tags | Tags to be attached to the resources created | `map(string)` | `{}` | no |
+| tags | A map of tags to add to all resources. | `map(string)` | `{}` | no |
 
 ## Outputs
 

@@ -1,76 +1,108 @@
 package test
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	"github.com/stretchr/testify/assert"
+	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
-func TestTerraformCreateSG(t *testing.T) {
-	t.Parallel()
+func initTestCases() []SecurityGroupTestCase {
 
-	namePrefix := fmt.Sprintf("%s-%s", "terratest", strings.ToLower(random.UniqueId()))
-
-	CIDRblocks := []string{"1.2.3.4/32"}
-	protocol := "all"
-	tags := map[string]string{"TagKey": "TagValue"}
-	ports := []string{"8080"}
-
-	// Getting a random region between the US ones
-	awsRegion := aws.GetRandomRegion(t, []string{"us-east-1", "us-east-2", "us-west-1", "us-west-2"}, nil)
-
-	terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		// The path to where our Terraform code is located
-		TerraformDir: "../examples/test_all_args",
-
-		Vars: map[string]interface{}{
-			"sg_name_prefix":      namePrefix,
-			"ingress_cidr_blocks": CIDRblocks,
-			// "ingress_security_groups":  ,
-			"egress_cidr_blocks": CIDRblocks,
-			// "egress_security_groups":  ,
-			"tags":             tags,
-			"ingress_ports":    ports,
-			"ingress_protocol": protocol,
-			"egress_protocol":  protocol,
+	return []SecurityGroupTestCase{
+		{
+			testName:         "Test1",
+			expectApplyError: false,
+			vars: map[string]interface{}{
+				"ingress_ports":       []string{"80", "443"},
+				"ingress_cidr_blocks": []string{"0.0.0.0/0"},
+				"egress_cidr_blocks":  []string{"0.0.0.0/0"},
+				"sg_name_prefix":      "",
+				"vpc_id":              "",
+			},
 		},
-		// Environment variables to set when running Terraform
-		EnvVars: map[string]string{
-			"AWS_DEFAULT_REGION": awsRegion,
-		},
+	}
+}
+
+func TestMinimal(t *testing.T) {
+	var vpcId string
+	var err error
+
+	// Defines one region for all testCases
+	usRegions := []string{"us-east-1", "us-east-2", "us-west-1", "us-west-2"}
+	// This function will first check for the Env Var TERRATEST_REGION and return its value if != ""
+	awsRegion := aws.GetRandomStableRegion(t, usRegions, nil)
+	vpcTfOptions := initVpcTerraformOptions(t, awsRegion)
+
+	// Creates one VPC for all testCases
+	test_structure.RunTestStage(t, "create_vpc", func() {
+		vpcId, err = createVpcE(t, vpcTfOptions)
+		require.NoError(t, err)
 	})
 
-	defer terraform.Destroy(t, terraformOptions)
-	terraform.InitAndApply(t, terraformOptions)
+	defer test_structure.RunTestStage(t, "destroy_vpc", func() {
+		terraform.Destroy(t, vpcTfOptions)
+	})
 
-	// brings all outputs inside a map
-	outAll := terraform.OutputAll(t, terraformOptions)
-	assert.NotNil(t, outAll)
+	// Begin testCases
+	testCases := initTestCases()
+	for _, testCase := range testCases {
+		t.Run(testCase.testName, func(t *testing.T) {
+			// this creates a tempTestFolder for each testCase
+			tempTestFolder := test_structure.CopyTerraformFolderToTemp(t, "..", "test_examples/minimal")
 
-	// gets all outputs and put into a map
-	// in this case we have one output only: the whole module.  which is also a map
-	// containing whatever outputs it is giving out.
-	moduleOut := outAll["module-security-groups"].(map[string]interface{})
-	assert.NotNil(t, moduleOut)
+			// this stage will generate a random `awsRegion` and a `uniqueId` to be used in tests.
+			test_structure.RunTestStage(t, "pick_new_randoms", func() {
+				test_structure.SaveString(t, tempTestFolder, "unique_id", strings.ToLower(random.UniqueId()))
+			})
 
-	// grabs each output from the module block and asserts it is not nil
-	// treats each output as a "list of anything". Each value has to be cast to its type later (string in this case)
-	// as we can't cast a list of interface{} to a list of string directly.
-	sgs := moduleOut["security_groups"].([]interface{})
-	assert.NotNil(t, sgs)
+			test_structure.RunTestStage(t, "setup_options", func() {
+				uniqueID := test_structure.LoadString(t, tempTestFolder, "unique_id")
 
-	ids := moduleOut["security_group_ids"].([]interface{})
-	assert.NotNil(t, ids)
+				testCase.vars["sg_name_prefix"] = uniqueID
+				testCase.vars["vpc_id"] = vpcId
 
-	i_ids := moduleOut["ingress_security_group_ids"].([]interface{})
-	assert.NotNil(t, i_ids)
+				terraformOptions := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
+					TerraformDir: tempTestFolder,
+					Vars:         testCase.vars,
+					EnvVars: map[string]string{
+						"AWS_REGION": awsRegion,
+					},
+				})
 
-	e_ids := moduleOut["egress_security_group_ids"].([]interface{})
-	assert.NotNil(t, e_ids)
+				test_structure.SaveTerraformOptions(t, tempTestFolder, terraformOptions)
+			})
 
+			test_structure.RunTestStage(t, "create_sg", func() {
+				terraformOptions := test_structure.LoadTerraformOptions(t, tempTestFolder)
+
+				_, err = terraform.InitAndApplyE(t, terraformOptions)
+
+				if testCase.expectApplyError {
+					require.Error(t, err)
+					// If it failed as expected, we should skip the rest (validate function).
+					t.SkipNow()
+				}
+
+				require.NoError(t, err)
+			})
+
+			defer test_structure.RunTestStage(t, "teardown", func() {
+				teraformOptions := test_structure.LoadTerraformOptions(t, tempTestFolder)
+				terraform.Destroy(t, teraformOptions)
+			})
+
+			test_structure.RunTestStage(t, "validate", func() {
+				terraformOptions := test_structure.LoadTerraformOptions(t, tempTestFolder)
+				validateModuleOutputs(
+					t,
+					terraformOptions,
+				)
+			})
+		})
+	}
 }

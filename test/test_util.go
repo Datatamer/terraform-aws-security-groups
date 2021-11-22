@@ -13,6 +13,7 @@ type SecurityGroupTestCase struct {
 	vars             map[string]interface{}
 }
 
+// validateModuleOutputs validates that the expected outputs from the module are not nil
 func validateModuleOutputs(t *testing.T, terraformOptions *terraform.Options) {
 
 	// brings all outputs inside a map
@@ -39,6 +40,7 @@ func validateModuleOutputs(t *testing.T, terraformOptions *terraform.Options) {
 	assert.NotNil(t, e_ids)
 }
 
+// createVpcE calls terraform Init and Apply having the terraform Options map and will return the VPC ID from output if successful.
 func createVpcE(t *testing.T, terraformOptions *terraform.Options) (string, error) {
 	_, err := terraform.InitAndApplyE(t, terraformOptions)
 
@@ -49,6 +51,7 @@ func createVpcE(t *testing.T, terraformOptions *terraform.Options) (string, erro
 	return terraform.OutputE(t, terraformOptions, "vpc_id")
 }
 
+// initVpcTerraformOptions initializes the VPC options with a hardcoded name_prefix and vpc_cidr
 func initVpcTerraformOptions(t *testing.T, awsRegion string) *terraform.Options {
 
 	return terraform.WithDefaultRetryableErrors(t, &terraform.Options{

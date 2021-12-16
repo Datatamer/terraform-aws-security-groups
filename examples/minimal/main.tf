@@ -8,4 +8,5 @@ module "security-groups" {
   egress_cidr_blocks  = var.egress_cidr_blocks
   egress_protocol     = "all"
   ingress_protocol    = "tcp"
+  tags = var.tags
 }

@@ -1,5 +1,3 @@
-
-
 module "security-groups" {
   source         = "../../"
   ingress_ports  = var.ingress_ports

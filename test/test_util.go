@@ -9,6 +9,7 @@ import (
 
 type SecurityGroupTestCase struct {
 	testName         string
+	tfDir            string
 	expectApplyError bool
 	vars             map[string]interface{}
 }

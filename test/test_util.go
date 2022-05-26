@@ -40,29 +40,3 @@ func validateModuleOutputs(t *testing.T, terraformOptions *terraform.Options) {
 	e_ids := moduleOut["egress_security_group_ids"].([]interface{})
 	assert.NotNil(t, e_ids)
 }
-
-// createVpcE calls terraform Init and Apply having the terraform Options map and will return the VPC ID from output if successful.
-func createVpcE(t *testing.T, terraformOptions *terraform.Options) (string, error) {
-	_, err := terraform.InitAndApplyE(t, terraformOptions)
-
-	if err != nil {
-		return "", err
-	}
-
-	return terraform.OutputE(t, terraformOptions, "vpc_id")
-}
-
-// initVpcTerraformOptions initializes the VPC options with a hardcoded name_prefix and vpc_cidr
-func initVpcTerraformOptions(t *testing.T, awsRegion string) *terraform.Options {
-
-	return terraform.WithDefaultRetryableErrors(t, &terraform.Options{
-		TerraformDir: "../test_examples/helpers/vpc",
-		Vars: map[string]interface{}{
-			"name_prefix": "terratest-helper",
-			"vpc_cidr":    "172.21.0.0/20",
-		},
-		EnvVars: map[string]string{
-			"AWS_REGION": awsRegion,
-		},
-	})
-}

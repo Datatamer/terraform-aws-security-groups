@@ -1,4 +1,6 @@
 # Security Group Module
+## v1.0.1 - August 4th 2022
+* Adjusts AWS provider constraints to allow newer versions
 
 ## v1.0.0 - June 29th 2021
 * New required variables `ingress_protocol` and `egress_protocol`
